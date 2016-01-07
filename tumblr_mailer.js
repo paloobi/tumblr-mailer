@@ -1,6 +1,7 @@
 var fs = require('fs');
 var ejs = require('ejs');
 var tumblr = require('tumblr.js');
+var nodemailer = require('nodemailer');
 
 function csvParse(csvFile) {
   var csvContents = fs.readFileSync(csvFile, "utf-8");
@@ -30,7 +31,7 @@ function csvParse(csvFile) {
 
 function createEmails(contactList) {
 
-  var emails = [];
+  var transporter = nodemailer.createTransport();
 
   var client = tumblr.createClient({
     consumer_key: '40katklU8rrkY71AiiMsf5U7F0OkqaAX87Dok5RdYUNTrv84d8',
@@ -38,8 +39,6 @@ function createEmails(contactList) {
     token: 'E5lFl2iHIY1VHOFUqyu3oso3oDktCngpPWXskcVc7AFVtEwXQp',
     token_secret: 'HlWveHoZbEUxO43mhMnq3uSvWc4pPhPyxmGyNP3tRM6kyViYq3'
   });
-
-  var emailContents;
 
   client.posts('paloobi.tumblr.com', function(err, blog) {
     var latestPosts = [];
@@ -70,11 +69,17 @@ function createEmails(contactList) {
         });
 
       // the email would be sent at this stage
+      transporter.sendMail({
+        from: 'apolubi@gmail.com',
+        to: contact.emailAddress,
+        subject: 'Hello from Alex P of NerdWords',
+        html: emailContents
+      });
       console.log(emailContents);
 
     };
   });
-}
+};
 
 var contacts = csvParse("friend_list.csv");
 var email_template = fs.readFileSync("email_template.ejs", "utf-8");
