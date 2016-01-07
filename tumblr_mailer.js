@@ -1,6 +1,7 @@
 var fs = require('fs');
 var ejs = require('ejs');
 var tumblr = require('tumblr.js');
+var auth = require('./auth.js');
 
 function csvParse(csvFile) {
   var csvContents = fs.readFileSync(csvFile, "utf-8");
@@ -30,16 +31,14 @@ function csvParse(csvFile) {
 
 function createEmails(contactList) {
 
-  var emails = [];
+  var mailgun = require('mailgun-js')({apiKey: auth.mailgun.key, domain: auth.mailgun.domain});
 
   var client = tumblr.createClient({
-    consumer_key: '40katklU8rrkY71AiiMsf5U7F0OkqaAX87Dok5RdYUNTrv84d8',
-    consumer_secret: 'RbPcJ4tApxewpU7vmFWwZo4BG3grlfMOYTVXpj7eZJL7XVfao1',
-    token: 'E5lFl2iHIY1VHOFUqyu3oso3oDktCngpPWXskcVc7AFVtEwXQp',
-    token_secret: 'HlWveHoZbEUxO43mhMnq3uSvWc4pPhPyxmGyNP3tRM6kyViYq3'
+    consumer_key: auth.tumblr.consumer_key,
+    consumer_secret: auth.tumblr.secret,
+    token: auth.tumblr.token,
+    token_secret: auth.tumblr.token_secret
   });
-
-  var emailContents;
 
   client.posts('paloobi.tumblr.com', function(err, blog) {
     var latestPosts = [];
@@ -70,14 +69,21 @@ function createEmails(contactList) {
         });
 
       // the email would be sent at this stage
-      console.log(emailContents);
+      var emailData = {
+        from: 'Alex <alex@polubiec.com>',
+        to: contact.emailAddress,
+        subject: 'Hello from Alex P of NerdWords - check out my latest posts!',
+        html: emailContents
+      };
 
+      mailgun.messages().send(emailData, function (error, body) {
+        console.log(body);
+      });
     };
   });
-}
+};
 
 var contacts = csvParse("friend_list.csv");
 var email_template = fs.readFileSync("email_template.ejs", "utf-8");
 
 createEmails(contacts);
-
