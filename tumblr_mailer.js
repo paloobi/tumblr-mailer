@@ -72,7 +72,7 @@ function createEmails(contactList) {
       var emailData = {
         from: 'Alex <alex@polubiec.com>',
         to: contact.emailAddress,
-        subject: 'Hello from Alex P of NerdWords - check out my latest posts!',
+        subject: 'Hello! Check out my latest posts on NerdWords!',
         html: emailContents
       };
 
