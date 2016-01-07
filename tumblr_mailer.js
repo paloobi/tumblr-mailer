@@ -1,7 +1,7 @@
 var fs = require('fs');
 var ejs = require('ejs');
 var tumblr = require('tumblr.js');
-var nodemailer = require('nodemailer');
+var mailgun = require('mailgun-js');
 
 function csvParse(csvFile) {
   var csvContents = fs.readFileSync(csvFile, "utf-8");
@@ -30,6 +30,10 @@ function csvParse(csvFile) {
 }
 
 function createEmails(contactList) {
+
+  var api_key = 'key-XXXXXXXXXXXXXXXXXXXXXXX';
+  var domain = 'polubiec.mailgun.org';
+  var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
 
   var transporter = nodemailer.createTransport();
 
@@ -69,14 +73,16 @@ function createEmails(contactList) {
         });
 
       // the email would be sent at this stage
-      transporter.sendMail({
-        from: 'apolubi@gmail.com',
+      var emailData = {
+        from: 'Alex <alex@polubiec.com>',
         to: contact.emailAddress,
-        subject: 'Hello from Alex P of NerdWords',
-        html: emailContents
-      });
-      console.log(emailContents);
+        subject: 'Hello! NerdWords Latest Posts',
+        text: emailContents
+      };
 
+      mailgun.messages().send(emailData, function (error, body) {
+        console.log(body);
+      });
     };
   });
 };
@@ -85,4 +91,3 @@ var contacts = csvParse("friend_list.csv");
 var email_template = fs.readFileSync("email_template.ejs", "utf-8");
 
 createEmails(contacts);
-
