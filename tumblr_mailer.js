@@ -1,7 +1,7 @@
 var fs = require('fs');
 var ejs = require('ejs');
 var tumblr = require('tumblr.js');
-var mailgun = require('mailgun-js');
+var auth = require('./auth.js');
 
 function csvParse(csvFile) {
   var csvContents = fs.readFileSync(csvFile, "utf-8");
@@ -31,17 +31,13 @@ function csvParse(csvFile) {
 
 function createEmails(contactList) {
 
-  var api_key = 'key-XXXXXXXXXXXXXXXXXXXXXXX';
-  var domain = 'polubiec.mailgun.org';
-  var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
-
-  var transporter = nodemailer.createTransport();
+  var mailgun = require('mailgun-js')({apiKey: auth.mailgun.key, domain: auth.mailgun.domain});
 
   var client = tumblr.createClient({
-    consumer_key: '40katklU8rrkY71AiiMsf5U7F0OkqaAX87Dok5RdYUNTrv84d8',
-    consumer_secret: 'RbPcJ4tApxewpU7vmFWwZo4BG3grlfMOYTVXpj7eZJL7XVfao1',
-    token: 'E5lFl2iHIY1VHOFUqyu3oso3oDktCngpPWXskcVc7AFVtEwXQp',
-    token_secret: 'HlWveHoZbEUxO43mhMnq3uSvWc4pPhPyxmGyNP3tRM6kyViYq3'
+    consumer_key: auth.tumblr.consumer_key,
+    consumer_secret: auth.tumblr.secret,
+    token: auth.tumblr.token,
+    token_secret: auth.tumblr.token_secret
   });
 
   client.posts('paloobi.tumblr.com', function(err, blog) {
@@ -76,8 +72,8 @@ function createEmails(contactList) {
       var emailData = {
         from: 'Alex <alex@polubiec.com>',
         to: contact.emailAddress,
-        subject: 'Hello! NerdWords Latest Posts',
-        text: emailContents
+        subject: 'Hello from Alex P of NerdWords - check out my latest posts!',
+        html: emailContents
       };
 
       mailgun.messages().send(emailData, function (error, body) {
